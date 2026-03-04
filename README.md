@@ -1,36 +1,133 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ecoyaan Checkout Flow
 
-## Getting Started
+A simplified checkout flow inspired by [Ecoyaan](https://ecoyaan.com), built with **Next.js 15**, **TypeScript**, and **Tailwind CSS v4**.
 
-First, run the development server:
+## 🚀 Live Demo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+[Deployed on Vercel →](#) *(Add your Vercel URL here after deployment)*
+
+---
+
+## 📸 Flow Overview
+
+**Cart → Shipping → Payment → Order Success**
+
+1. **Cart / Order Summary** — SSR-fetched product list with pricing breakdown
+2. **Shipping Address** — Validated form (email, 10-digit phone, 6-digit PIN)
+3. **Payment & Review** — Final summary with simulated secure payment
+4. **Order Success** — Animated confirmation with order details
+
+---
+
+## 🏗️ Architecture & Tech Choices
+
+### Server-Side Rendering (SSR)
+- The **Cart page** is a **Server Component** that fetches product data from a local API route at request time (`cache: "no-store"`), demonstrating true SSR.
+- The API route (`/api/cart`) returns mock JSON data asynchronously.
+
+### State Management
+- **React Context API** (`CheckoutContext`) manages cart items, shipping address, current step, and order status across all pages.
+- Address data persists when navigating back and forth between steps.
+
+### Form Validation
+- Real-time inline validation with **touched-field** tracking.
+- Rules: required fields, email regex, Indian 10-digit phone (`/^[6-9]\d{9}$/`), 6-digit PIN code.
+- All Indian states/UTs in a dropdown selector.
+
+### Styling
+- **Tailwind CSS v4** with a custom Ecoyaan-inspired green palette.
+- Animations: fade-in page transitions, checkmark SVG animation on success, button hover effects.
+- Fully **responsive** — tested on mobile, tablet, and desktop viewports.
+
+### Project Structure
+```
+src/
+├── app/
+│   ├── api/cart/route.ts       # Mock API endpoint
+│   ├── page.tsx                # Cart (Server Component → SSR)
+│   ├── shipping/page.tsx       # Shipping address form
+│   ├── payment/page.tsx        # Payment review & confirmation
+│   ├── success/page.tsx        # Order success page
+│   ├── layout.tsx              # Root layout + CheckoutProvider
+│   └── globals.css             # Custom CSS + Tailwind theme
+├── components/
+│   ├── CartPage.tsx            # Cart client component
+│   ├── Header.tsx              # Ecoyaan-branded header
+│   ├── OrderSummaryCard.tsx    # Reusable price breakdown card
+│   └── StepIndicator.tsx       # Visual step progress indicator
+├── context/
+│   └── CheckoutContext.tsx     # React Context for checkout state
+└── types/
+    └── index.ts                # TypeScript interfaces
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Getting Started
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
+- **Node.js** ≥ 18
+- **npm** ≥ 9
 
-## Learn More
+### Install & Run
+```bash
+# Clone the repository
+git clone https://github.com/amansingh107/Ecoyaan_Assignment.git
+cd Ecoyaan_Assignment
 
-To learn more about Next.js, take a look at the following resources:
+# Install dependencies
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Start development server
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deploy on Vercel
+### Build for Production
+```bash
+npm run build
+npm start
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🧪 Mock Data
+
+The API route `/api/cart` serves:
+
+```json
+{
+  "cartItems": [
+    {
+      "product_id": 101,
+      "product_name": "Bamboo Toothbrush (Pack of 4)",
+      "product_price": 299,
+      "quantity": 2,
+      "image": "https://via.placeholder.com/150"
+    },
+    {
+      "product_id": 102,
+      "product_name": "Reusable Cotton Produce Bags",
+      "product_price": 450,
+      "quantity": 1,
+      "image": "https://via.placeholder.com/150"
+    }
+  ],
+  "shipping_fee": 50,
+  "discount_applied": 0
+}
+```
+
+---
+
+## 📋 Key Features
+
+| Feature | Implementation |
+|---|---|
+| SSR Data Fetching | Server Component fetching from API route |
+| State Management | React Context API |
+| Form Validation | Real-time with regex + touched-field tracking |
+| Responsive Design | Tailwind CSS responsive breakpoints |
+| Animations | CSS keyframe animations + transitions |
+| Type Safety | Full TypeScript throughout |
