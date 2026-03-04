@@ -1,25 +1,11 @@
-import { CartData } from "@/types";
 import CartPageClient from "@/components/CartPage";
+import { getCartData } from "@/lib/cart-data";
 
-async function getCartData(): Promise<CartData> {
-  // Server-side data fetching - demonstrating SSR
-  // In production, this would call an external API
-  // Using the API route for local development
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
-
-  const res = await fetch(`${baseUrl}/api/cart`, {
-    cache: "no-store", // Ensure fresh data on every request (SSR)
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch cart data");
-  }
-
-  return res.json();
-}
-
+/**
+ * Cart Page — Server Component
+ * Fetches cart data server-side (SSR) by directly importing the data module.
+ * This avoids self-fetching API routes, which is unreliable in Server Components on Vercel.
+ */
 export default async function CartPage() {
   const cartData = await getCartData();
 
