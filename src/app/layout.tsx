@@ -8,6 +8,7 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -23,10 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased bg-ecoyaan-gray-light min-h-screen`}>
+      <body className={`${inter.variable} antialiased min-h-screen`} style={{ background: "var(--color-background)" }}>
         <CheckoutProvider>
           <Header />
-          <main className="max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+          <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
             {children}
           </main>
         </CheckoutProvider>

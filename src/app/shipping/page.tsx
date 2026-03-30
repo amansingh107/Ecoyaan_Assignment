@@ -40,23 +40,20 @@ export default function ShippingPage() {
         isHydrated,
     } = useCheckout();
 
-    // Which saved address is highlighted (by id)
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    // Whether the "add new" form panel is open
     const [showNewForm, setShowNewForm] = useState(false);
 
     const [form, setForm] = useState<ShippingAddress>(EMPTY_FORM);
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-    // Effect 1 (size: 0) — cart guard + step, runs once on mount
+    // Effect 1 (size: 0) — cart guard + step
     useEffect(() => {
         if (cartItems.length === 0) router.push("/");
         else setCurrentStep(2);
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Effect 2 (size: 1) — initialise address selection once localStorage is ready.
-    // Kept separate so both effects always have a consistent deps-array size.
+    // Effect 2 (size: 1) — address selection once localStorage is ready
     useEffect(() => {
         if (!isHydrated) return;
         if (savedAddresses.length === 0) {
@@ -71,7 +68,7 @@ export default function ShippingPage() {
         }
     }, [isHydrated]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // ─── Validation ────────────────────────────────────────────────────────
+    // ── Validation ─────────────────────────────────────────────────────────
     const validate = (data: ShippingAddress): FormErrors => {
         const errs: FormErrors = {};
         if (!data.fullName.trim()) errs.fullName = "Full name is required";
@@ -108,7 +105,6 @@ export default function ShippingPage() {
         setErrors((prev) => ({ ...prev, [name]: newErrors[name as keyof FormErrors] }));
     };
 
-    // ─── Submit new address form ────────────────────────────────────────────
     const handleNewAddressSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors = validate(form);
@@ -124,7 +120,6 @@ export default function ShippingPage() {
         router.push("/payment");
     };
 
-    // ─── Continue with selected saved address ──────────────────────────────
     const handleContinueWithSaved = () => {
         const selected = savedAddresses.find((a) => a.id === selectedId);
         if (!selected) return;
@@ -133,12 +128,8 @@ export default function ShippingPage() {
         router.push("/payment");
     };
 
-    // ─── Master continue handler ────────────────────────────────────────────
     const handleContinue = () => {
-        if (!showNewForm && selectedId) {
-            handleContinueWithSaved();
-        }
-        // When showNewForm is true the form submit handles it via formId
+        if (!showNewForm && selectedId) handleContinueWithSaved();
     };
 
     const handleBack = () => {
@@ -148,28 +139,31 @@ export default function ShippingPage() {
 
     const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
+    const inputBase = "w-full px-4 py-3 rounded-xl border text-sm bg-white transition-all duration-150 outline-none placeholder:text-gray-300";
     const inputClasses = (field: keyof FormErrors) =>
-        `w-full px-4 py-3 rounded-xl border text-sm transition-all duration-200 outline-none ${
+        `${inputBase} ${
             errors[field] && touched[field]
-                ? "border-ecoyaan-error bg-red-50/50 focus:ring-2 focus:ring-ecoyaan-error/20"
-                : "border-ecoyaan-border bg-white hover:border-ecoyaan-green/50 focus:border-ecoyaan-green focus:ring-2 focus:ring-ecoyaan-green/15"
+                ? "border-ecoyaan-error bg-red-50/40"
+                : "border-ecoyaan-border hover:border-ecoyaan-green/40"
         }`;
 
     const hasSaved = savedAddresses.length > 0;
 
-    // Wait for localStorage to be read before deciding which UI to show
+    // Loading skeleton while localStorage hydrates
     if (!isHydrated) {
         return (
-            <div className="animate-fadeIn pb-24">
+            <div className="animate-fadeIn pb-28">
                 <StepIndicator currentStep={2} />
-                <div className="h-8 w-48 bg-ecoyaan-gray-light rounded-lg mb-2 animate-pulse" />
-                <div className="h-4 w-64 bg-ecoyaan-gray-light rounded mb-6 animate-pulse" />
+                <div className="mb-8">
+                    <div className="h-8 w-52 bg-ecoyaan-gray-light rounded-xl animate-pulse mb-2" />
+                    <div className="h-4 w-72 bg-ecoyaan-gray-light rounded-lg animate-pulse" />
+                </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-4">
-                        <div className="bg-white border border-ecoyaan-border rounded-xl h-48 animate-pulse" />
+                    <div className="lg:col-span-2">
+                        <div className="card h-52 animate-pulse" />
                     </div>
                     <div className="lg:col-span-1">
-                        <div className="bg-white border border-ecoyaan-border rounded-xl h-40 animate-pulse" />
+                        <div className="card h-44 animate-pulse" />
                     </div>
                 </div>
             </div>
@@ -177,11 +171,13 @@ export default function ShippingPage() {
     }
 
     return (
-        <div className="animate-fadeIn pb-24">
+        <div className="animate-fadeIn pb-28">
             <StepIndicator currentStep={2} />
 
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Delivery Address</h1>
+            <div className="mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                    Delivery Address
+                </h1>
                 <p className="text-sm text-ecoyaan-gray mt-1">
                     Where should we deliver your order?
                 </p>
@@ -190,14 +186,17 @@ export default function ShippingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
 
-                    {/* ── Saved Addresses ─────────────────────────────────────── */}
+                    {/* ── Saved addresses ─────────────────────────────── */}
                     {hasSaved && (
-                        <div className="bg-white border border-ecoyaan-border rounded-xl shadow-sm overflow-hidden">
-                            <div className="bg-gradient-to-r from-ecoyaan-gray-light to-white px-5 py-3.5 border-b border-ecoyaan-border flex items-center gap-2">
+                        <div className="card overflow-hidden">
+                            <div className="px-5 py-3.5 border-b border-ecoyaan-border bg-ecoyaan-gray-light/80 flex items-center gap-2">
                                 <svg className="w-4 h-4 text-ecoyaan-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                                 </svg>
                                 <span className="font-semibold text-sm text-foreground">Saved Addresses</span>
+                                <span className="ml-auto text-xs text-ecoyaan-gray bg-ecoyaan-border px-2 py-0.5 rounded-full">
+                                    {savedAddresses.length} saved
+                                </span>
                             </div>
 
                             <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -208,10 +207,7 @@ export default function ShippingPage() {
                                             key={addr.id}
                                             role="button"
                                             tabIndex={0}
-                                            onClick={() => {
-                                                setSelectedId(addr.id ?? null);
-                                                setShowNewForm(false);
-                                            }}
+                                            onClick={() => { setSelectedId(addr.id ?? null); setShowNewForm(false); }}
                                             onKeyDown={(e) => {
                                                 if (e.key === "Enter" || e.key === " ") {
                                                     e.preventDefault();
@@ -219,22 +215,22 @@ export default function ShippingPage() {
                                                     setShowNewForm(false);
                                                 }
                                             }}
-                                            className={`relative cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 outline-none group ${
+                                            className={`relative cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 outline-none group card-hover ${
                                                 isSelected
-                                                    ? "border-ecoyaan-green bg-ecoyaan-green-light shadow-sm shadow-ecoyaan-green/15"
-                                                    : "border-ecoyaan-border bg-white hover:border-ecoyaan-green/40 hover:shadow-sm focus-visible:border-ecoyaan-green"
+                                                    ? "border-ecoyaan-green bg-ecoyaan-green-light shadow-md shadow-ecoyaan-green/15"
+                                                    : "border-ecoyaan-border bg-white hover:border-ecoyaan-green/40 focus-visible:border-ecoyaan-green"
                                             }`}
                                         >
-                                            {/* Radio indicator + Delete */}
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
-                                                    isSelected ? "border-ecoyaan-green" : "border-gray-300"
+                                            <div className="flex items-start justify-between mb-3">
+                                                {/* Radio */}
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                                    isSelected ? "border-ecoyaan-green bg-ecoyaan-green" : "border-gray-300"
                                                 }`}>
                                                     {isSelected && (
-                                                        <div className="w-2.5 h-2.5 rounded-full bg-ecoyaan-green" />
+                                                        <div className="w-2 h-2 rounded-full bg-white" />
                                                     )}
                                                 </div>
-                                                {/* Delete button — valid because parent is a div, not a button */}
+                                                {/* Delete */}
                                                 <button
                                                     type="button"
                                                     onClick={(e) => {
@@ -242,7 +238,7 @@ export default function ShippingPage() {
                                                         removeSavedAddress(addr.id!);
                                                         if (selectedId === addr.id) setSelectedId(null);
                                                     }}
-                                                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 rounded-lg hover:bg-red-50 text-gray-400 hover:text-ecoyaan-error transition-all"
+                                                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1.5 rounded-lg hover:bg-red-50 text-gray-300 hover:text-ecoyaan-error transition-all"
                                                     aria-label="Remove address"
                                                 >
                                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -251,19 +247,15 @@ export default function ShippingPage() {
                                                 </button>
                                             </div>
 
-                                            <p className="font-semibold text-sm text-foreground">
-                                                {addr.fullName}
-                                            </p>
-                                            <p className="text-xs text-ecoyaan-gray mt-0.5">+91 {addr.phone}</p>
-                                            <p className="text-xs text-ecoyaan-gray mt-0.5 truncate">
-                                                {addr.city}, {addr.state}
-                                            </p>
-                                            <p className="text-xs text-ecoyaan-gray">PIN: {addr.pinCode}</p>
+                                            <p className="font-bold text-sm text-foreground leading-snug">{addr.fullName}</p>
+                                            <p className="text-xs text-ecoyaan-gray mt-1">+91 {addr.phone}</p>
+                                            <p className="text-xs text-ecoyaan-gray truncate">{addr.city}, {addr.state}</p>
+                                            <p className="text-xs text-ecoyaan-gray font-mono mt-0.5">{addr.pinCode}</p>
                                         </div>
                                     );
                                 })}
 
-                                {/* Add New Address card */}
+                                {/* Add new card */}
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -273,20 +265,20 @@ export default function ShippingPage() {
                                         setErrors({});
                                         setTouched({});
                                     }}
-                                    className={`text-left rounded-xl border-2 border-dashed p-4 transition-all duration-200 focus:outline-none min-h-[100px] flex flex-col items-center justify-center gap-2 ${
+                                    className={`flex flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed p-4 min-h-[120px] transition-all duration-200 focus:outline-none ${
                                         showNewForm
-                                            ? "border-ecoyaan-green bg-ecoyaan-green-light/50"
-                                            : "border-ecoyaan-border hover:border-ecoyaan-green/50 hover:bg-ecoyaan-gray-light/50"
+                                            ? "border-ecoyaan-green bg-ecoyaan-green-light/60"
+                                            : "border-ecoyaan-border bg-white hover:border-ecoyaan-green/50 hover:bg-ecoyaan-gray-light/50"
                                     }`}
                                 >
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                                        showNewForm ? "bg-ecoyaan-green text-white" : "bg-ecoyaan-gray-light text-ecoyaan-gray"
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                                        showNewForm ? "bg-ecoyaan-green shadow-md shadow-ecoyaan-green/30" : "bg-ecoyaan-gray-light"
                                     }`}>
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={showNewForm ? "M6 18L18 6M6 6l12 12" : "M12 4v16m8-8H4"} />
+                                        <svg className={`w-4 h-4 transition-all ${showNewForm ? "text-white rotate-45" : "text-ecoyaan-gray"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                                         </svg>
                                     </div>
-                                    <span className={`text-sm font-medium ${showNewForm ? "text-ecoyaan-green" : "text-ecoyaan-gray"}`}>
+                                    <span className={`text-xs font-semibold ${showNewForm ? "text-ecoyaan-green" : "text-ecoyaan-gray"}`}>
                                         {showNewForm ? "Cancel" : "Add New Address"}
                                     </span>
                                 </button>
@@ -294,33 +286,29 @@ export default function ShippingPage() {
                         </div>
                     )}
 
-                    {/* ── New Address Form ─────────────────────────────────────── */}
+                    {/* ── New address form ─────────────────────────────── */}
                     {showNewForm && (
-                        <form
-                            id="shipping-form"
-                            onSubmit={handleNewAddressSubmit}
-                            noValidate
-                            className="animate-fadeIn"
-                        >
-                            <div className="bg-white border border-ecoyaan-border rounded-xl shadow-sm p-5 sm:p-6">
-                                <div className="flex items-center gap-2 mb-5">
-                                    <div className="w-7 h-7 rounded-lg bg-ecoyaan-green/10 flex items-center justify-center">
+                        <form id="shipping-form" onSubmit={handleNewAddressSubmit} noValidate className="animate-slideUp">
+                            <div className="card p-5 sm:p-6">
+                                <div className="flex items-center gap-2.5 mb-6">
+                                    <div className="w-8 h-8 rounded-xl bg-ecoyaan-green/10 flex items-center justify-center">
                                         <svg className="w-4 h-4 text-ecoyaan-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
                                     </div>
-                                    <h2 className="font-semibold text-foreground text-sm">
-                                        {hasSaved ? "New Address Details" : "Enter Delivery Address"}
-                                    </h2>
+                                    <div>
+                                        <h2 className="font-bold text-sm text-foreground">
+                                            {hasSaved ? "Add a New Address" : "Enter Delivery Address"}
+                                        </h2>
+                                        <p className="text-xs text-ecoyaan-gray">This will be saved for future orders</p>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {/* Full Name */}
                                     <div className="sm:col-span-2">
-                                        <label htmlFor="fullName" className="block text-xs font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                                            Full Name <span className="text-ecoyaan-error normal-case tracking-normal">*</span>
-                                        </label>
+                                        <Label text="Full Name" required />
                                         <input
                                             id="fullName" type="text" name="fullName"
                                             value={form.fullName} onChange={handleChange} onBlur={handleBlur}
@@ -332,13 +320,11 @@ export default function ShippingPage() {
 
                                     {/* Email */}
                                     <div>
-                                        <label htmlFor="email" className="block text-xs font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                                            Email <span className="text-ecoyaan-error normal-case tracking-normal">*</span>
-                                        </label>
+                                        <Label text="Email Address" required />
                                         <input
                                             id="email" type="email" name="email"
                                             value={form.email} onChange={handleChange} onBlur={handleBlur}
-                                            placeholder="name@example.com"
+                                            placeholder="you@example.com"
                                             className={inputClasses("email")}
                                         />
                                         {errors.email && touched.email && <FieldError msg={errors.email} />}
@@ -346,18 +332,16 @@ export default function ShippingPage() {
 
                                     {/* Phone */}
                                     <div>
-                                        <label htmlFor="phone" className="block text-xs font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                                            Phone <span className="text-ecoyaan-error normal-case tracking-normal">*</span>
-                                        </label>
+                                        <Label text="Phone Number" required />
                                         <div className="relative">
-                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ecoyaan-gray text-sm font-medium pointer-events-none">
+                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ecoyaan-gray text-sm font-semibold pointer-events-none select-none">
                                                 +91
                                             </span>
                                             <input
                                                 id="phone" type="tel" name="phone"
                                                 value={form.phone} onChange={handleChange} onBlur={handleBlur}
                                                 placeholder="9876543210" maxLength={10}
-                                                className={`${inputClasses("phone")} pl-11`}
+                                                className={`${inputClasses("phone")} pl-12`}
                                             />
                                         </div>
                                         {errors.phone && touched.phone && <FieldError msg={errors.phone} />}
@@ -365,9 +349,7 @@ export default function ShippingPage() {
 
                                     {/* PIN Code */}
                                     <div>
-                                        <label htmlFor="pinCode" className="block text-xs font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                                            PIN Code <span className="text-ecoyaan-error normal-case tracking-normal">*</span>
-                                        </label>
+                                        <Label text="PIN Code" required />
                                         <input
                                             id="pinCode" type="text" name="pinCode"
                                             value={form.pinCode} onChange={handleChange} onBlur={handleBlur}
@@ -379,9 +361,7 @@ export default function ShippingPage() {
 
                                     {/* City */}
                                     <div>
-                                        <label htmlFor="city" className="block text-xs font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                                            City <span className="text-ecoyaan-error normal-case tracking-normal">*</span>
-                                        </label>
+                                        <Label text="City" required />
                                         <input
                                             id="city" type="text" name="city"
                                             value={form.city} onChange={handleChange} onBlur={handleBlur}
@@ -393,17 +373,15 @@ export default function ShippingPage() {
 
                                     {/* State */}
                                     <div className="sm:col-span-2">
-                                        <label htmlFor="state" className="block text-xs font-semibold text-foreground mb-1.5 uppercase tracking-wide">
-                                            State <span className="text-ecoyaan-error normal-case tracking-normal">*</span>
-                                        </label>
+                                        <Label text="State / UT" required />
                                         <select
                                             id="state" name="state"
                                             value={form.state} onChange={handleChange} onBlur={handleBlur}
                                             className={`${inputClasses("state")} cursor-pointer`}
                                         >
                                             <option value="">Select your state</option>
-                                            {indianStates.map((state) => (
-                                                <option key={state} value={state}>{state}</option>
+                                            {indianStates.map((s) => (
+                                                <option key={s} value={s}>{s}</option>
                                             ))}
                                         </select>
                                         {errors.state && touched.state && <FieldError msg={errors.state} />}
@@ -414,9 +392,9 @@ export default function ShippingPage() {
                     )}
                 </div>
 
-                {/* Order Summary Sidebar */}
+                {/* Sidebar */}
                 <div className="lg:col-span-1">
-                    <div className="sticky top-20">
+                    <div className="sticky top-24">
                         <OrderSummaryCard
                             subtotal={subtotal}
                             shippingFee={shippingFee}
@@ -441,9 +419,17 @@ export default function ShippingPage() {
     );
 }
 
+function Label({ text, required }: { text: string; required?: boolean }) {
+    return (
+        <label className="block text-xs font-semibold text-foreground/70 mb-1.5 uppercase tracking-wider">
+            {text}{required && <span className="text-ecoyaan-error ml-1 normal-case tracking-normal">*</span>}
+        </label>
+    );
+}
+
 function FieldError({ msg }: { msg: string }) {
     return (
-        <p className="text-ecoyaan-error text-xs mt-1.5 flex items-center gap-1">
+        <p className="text-ecoyaan-error text-xs mt-1.5 flex items-center gap-1 font-medium">
             <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>

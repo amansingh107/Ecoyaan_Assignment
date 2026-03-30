@@ -48,22 +48,24 @@ export default function PaymentPage() {
     const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
     return (
-        <div className="animate-fadeIn pb-24">
+        <div className="animate-fadeIn pb-28">
             <StepIndicator currentStep={3} />
 
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Review & Pay</h1>
+            <div className="mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                    Review & Pay
+                </h1>
                 <p className="text-sm text-ecoyaan-gray mt-1">
-                    Confirm your order details before paying
+                    Confirm your details before placing the order
                 </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
 
-                    {/* Shipping Address Summary */}
-                    <div className="bg-white border border-ecoyaan-border rounded-xl shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-ecoyaan-gray-light to-white px-5 py-3.5 border-b border-ecoyaan-border flex items-center justify-between">
+                    {/* ── Delivery address ──────────────────────────────── */}
+                    <div className="card overflow-hidden">
+                        <div className="px-5 py-3.5 border-b border-ecoyaan-border bg-ecoyaan-gray-light/80 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-lg bg-ecoyaan-green/10 flex items-center justify-center">
                                     <svg className="w-3.5 h-3.5 text-ecoyaan-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -71,60 +73,58 @@ export default function PaymentPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
-                                <h2 className="font-semibold text-sm text-foreground">Delivery Address</h2>
+                                <span className="font-semibold text-sm text-foreground">Delivery Address</span>
                             </div>
                             <button
                                 onClick={() => { setCurrentStep(2); router.push("/shipping"); }}
-                                className="text-ecoyaan-green text-xs font-semibold hover:underline flex items-center gap-1"
+                                className="text-ecoyaan-green text-xs font-semibold hover:underline underline-offset-2 flex items-center gap-1 transition-opacity hover:opacity-80"
                             >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                                 Change
                             </button>
                         </div>
-                        <div className="p-5">
-                            <div className="flex items-start gap-3">
-                                <div className="w-9 h-9 rounded-xl bg-ecoyaan-green-light flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-5 h-5 text-ecoyaan-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-foreground text-sm">{shippingAddress.fullName}</p>
-                                    <p className="text-xs text-ecoyaan-gray mt-0.5">{shippingAddress.email}</p>
-                                    <p className="text-xs text-ecoyaan-gray">+91 {shippingAddress.phone}</p>
-                                    <p className="text-xs text-ecoyaan-gray mt-1 font-medium">
-                                        {shippingAddress.city}, {shippingAddress.state} — {shippingAddress.pinCode}
-                                    </p>
-                                </div>
+                        <div className="p-5 flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-ecoyaan-green-light flex items-center justify-center flex-shrink-0">
+                                <svg className="w-5 h-5 text-ecoyaan-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="font-bold text-foreground text-sm">{shippingAddress.fullName}</p>
+                                <p className="text-xs text-ecoyaan-gray mt-0.5">{shippingAddress.email}</p>
+                                <p className="text-xs text-ecoyaan-gray">+91 {shippingAddress.phone}</p>
+                                <p className="text-xs text-foreground font-semibold mt-1.5 bg-ecoyaan-gray-light inline-block px-2.5 py-1 rounded-lg">
+                                    {shippingAddress.city}, {shippingAddress.state} · {shippingAddress.pinCode}
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Order Items */}
-                    <div className="bg-white border border-ecoyaan-border rounded-xl shadow-sm overflow-hidden">
-                        <div className="bg-gradient-to-r from-ecoyaan-gray-light to-white px-5 py-3.5 border-b border-ecoyaan-border flex items-center justify-between">
+                    {/* ── Order items ────────────────────────────────────── */}
+                    <div className="card overflow-hidden">
+                        <div className="px-5 py-3.5 border-b border-ecoyaan-border bg-ecoyaan-gray-light/80 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="w-6 h-6 rounded-lg bg-ecoyaan-green/10 flex items-center justify-center">
                                     <svg className="w-3.5 h-3.5 text-ecoyaan-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                     </svg>
                                 </div>
-                                <h2 className="font-semibold text-sm text-foreground">Order Items</h2>
+                                <span className="font-semibold text-sm text-foreground">Order Items</span>
                             </div>
-                            <span className="text-xs bg-ecoyaan-green/10 text-ecoyaan-green font-medium px-2.5 py-1 rounded-full">
+                            <span className="text-xs font-semibold text-ecoyaan-green bg-ecoyaan-green/10 px-2.5 py-1 rounded-full">
                                 {itemCount} {itemCount === 1 ? "item" : "items"}
                             </span>
                         </div>
-                        <div className="divide-y divide-ecoyaan-border">
+                        <div className="divide-y divide-ecoyaan-border/60">
                             {cartItems.map((item) => (
-                                <div key={item.product_id} className="p-4 flex items-center gap-4">
-                                    <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-ecoyaan-green-light flex-shrink-0 border border-ecoyaan-border/60">
+                                <div key={item.product_id} className="p-4 sm:p-5 flex items-center gap-4">
+                                    <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-ecoyaan-green-light flex-shrink-0 border border-ecoyaan-border/60">
                                         <ProductImage src={item.image} alt={item.product_name} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-medium text-foreground leading-snug line-clamp-2">
+                                        <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2">
                                             {item.product_name}
                                         </h3>
                                         <p className="text-xs text-ecoyaan-gray mt-0.5">
@@ -139,45 +139,45 @@ export default function PaymentPage() {
                         </div>
                     </div>
 
-                    {/* Payment Method */}
-                    <div className="bg-white border border-ecoyaan-border rounded-xl shadow-sm p-5">
+                    {/* ── Payment method ─────────────────────────────────── */}
+                    <div className="card p-5">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-6 h-6 rounded-lg bg-ecoyaan-green/10 flex items-center justify-center">
                                 <svg className="w-3.5 h-3.5 text-ecoyaan-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
                             </div>
-                            <h2 className="font-semibold text-sm text-foreground">Payment Method</h2>
+                            <span className="font-semibold text-sm text-foreground">Payment Method</span>
                         </div>
 
-                        <div className="flex items-center gap-3 p-3.5 bg-ecoyaan-green-light border border-ecoyaan-green/20 rounded-xl">
+                        <div className="flex items-center gap-3 p-4 bg-ecoyaan-green-light border border-ecoyaan-green/25 rounded-2xl">
                             <div className="w-5 h-5 rounded-full border-2 border-ecoyaan-green flex items-center justify-center flex-shrink-0">
                                 <div className="w-2.5 h-2.5 rounded-full bg-ecoyaan-green" />
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-foreground">Simulated Secure Payment</p>
-                                <p className="text-xs text-ecoyaan-gray mt-0.5">Demo mode — no real payment is processed</p>
+                                <p className="text-sm font-bold text-foreground">Simulated Secure Payment</p>
+                                <p className="text-xs text-ecoyaan-gray mt-0.5">No real transaction is processed</p>
                             </div>
                         </div>
 
-                        <div className="mt-4 flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2 mt-4">
                             {[
-                                { icon: "🔒", text: "256-bit SSL encrypted" },
-                                { icon: "🛡️", text: "PCI DSS compliant" },
-                                { icon: "✅", text: "Verified by Ecoyaan" },
-                            ].map((badge) => (
-                                <div key={badge.text} className="flex items-center gap-1.5 text-xs text-ecoyaan-gray bg-ecoyaan-gray-light rounded-lg px-2.5 py-1.5">
-                                    <span>{badge.icon}</span>
-                                    <span>{badge.text}</span>
+                                { icon: "🔒", text: "256-bit SSL" },
+                                { icon: "🛡️", text: "PCI DSS" },
+                                { icon: "✅", text: "Ecoyaan Verified" },
+                            ].map((b) => (
+                                <div key={b.text} className="flex items-center gap-1.5 text-xs text-ecoyaan-gray bg-ecoyaan-gray-light border border-ecoyaan-border rounded-xl px-3 py-1.5 font-medium">
+                                    <span>{b.icon}</span>
+                                    <span>{b.text}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                {/* Order Summary Sidebar */}
+                {/* Sidebar */}
                 <div className="lg:col-span-1">
-                    <div className="sticky top-20">
+                    <div className="sticky top-24">
                         <OrderSummaryCard
                             subtotal={subtotal}
                             shippingFee={shippingFee}
@@ -193,7 +193,7 @@ export default function PaymentPage() {
                 onBack={handleBack}
                 backLabel="Back to Shipping"
                 onNext={handlePayment}
-                nextLabel={isProcessing ? "" : `Pay ₹${grandTotal.toLocaleString("en-IN")} Securely`}
+                nextLabel={`Pay ₹${grandTotal.toLocaleString("en-IN")} Securely`}
                 isLoading={isProcessing}
                 loadingLabel="Processing Payment..."
             />
