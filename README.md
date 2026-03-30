@@ -5,7 +5,7 @@ A simplified checkout flow inspired by [Ecoyaan](https://ecoyaan.com), built wit
 ## Live Demo & Repository
 
 - **GitHub**: [github.com/amansingh107/Ecoyaan_Assignment](https://github.com/amansingh107/Ecoyaan_Assignment)
-- **Deployed**: [ecoyaan-assignment-dzbmt96na-amans-projects-3d0112f7.vercel.app](https://ecoyaan-assignment-dzbmt96na-amans-projects-3d0112f7.vercel.app/)
+- **Deployed**: [ecoyaan-assignment-phi.vercel.app](https://ecoyaan-assignment-phi.vercel.app/)
 
 ---
 
