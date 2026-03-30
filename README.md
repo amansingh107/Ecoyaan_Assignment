@@ -1,93 +1,121 @@
 # Ecoyaan Checkout Flow
 
-A simplified checkout flow inspired by [Ecoyaan](https://ecoyaan.com), built with **Next.js 15**, **TypeScript**, and **Tailwind CSS v4**.
+A simplified checkout flow inspired by [Ecoyaan](https://ecoyaan.com), built with **Next.js**, **TypeScript**, and **Tailwind CSS v4**.
 
-## 🚀 Live Demo & Repository
+## Live Demo & Repository
 
 - **GitHub**: [github.com/amansingh107/Ecoyaan_Assignment](https://github.com/amansingh107/Ecoyaan_Assignment)
-- **Deployed**: [Deployed on Vercel -> ecoyaan-assignment-dzbmt96na-amans-projects-3d0112f7.vercel.app](https://ecoyaan-assignment-dzbmt96na-amans-projects-3d0112f7.vercel.app/)
+- **Deployed**: [ecoyaan-assignment-dzbmt96na-amans-projects-3d0112f7.vercel.app](https://ecoyaan-assignment-dzbmt96na-amans-projects-3d0112f7.vercel.app/)
 
 ---
 
-## 📸 Flow Overview
+## Flow Overview
 
 **Cart → Shipping → Payment → Order Success**
 
 1. **Cart / Order Summary** — SSR-fetched product list with pricing breakdown
-2. **Shipping Address** — Validated form (email, 10-digit phone, 6-digit PIN)
-3. **Payment & Review** — Final summary with simulated secure payment
+2. **Shipping Address** — Saved addresses + validated new address form
+3. **Payment & Review** — Final order summary with simulated secure payment
 4. **Order Success** — Animated confirmation with order details
 
 ---
 
-## 🏗️ Architectural Choices & Rationale
+## Architectural Choices & Rationale
 
-### Why Next.js 15 with App Router?
-- **Server Components (SSR)**: The Cart page (`src/app/page.tsx`) is a **Server Component** that fetches product data server-side from a local API route using `fetch()` with `cache: "no-store"`. This ensures the page is **server-rendered on every request**, demonstrating true SSR — the HTML is fully rendered before being sent to the client.
-- **App Router over Pages Router**: Chosen because App Router is the recommended approach in Next.js 15, offers better layouts via `layout.tsx`, and natively supports React Server Components — making SSR more idiomatic and simpler to implement.
-- **API Routes**: The mock backend lives in `src/app/api/cart/route.ts` using Next.js Route Handlers. This simulates a real backend endpoint and keeps the data layer decoupled from the UI.
+### Next.js App Router with Server Components (SSR)
 
-### Why React Context API for State Management?
-- **Simplicity**: For a 3-step checkout flow with cart, address, and order state, Context API provides sufficient capability without the overhead of Redux or Zustand.
-- **Cross-page persistence**: The `CheckoutProvider` wraps the entire app in `layout.tsx`, so state (cart items, shipping address, current step, and order status) persists across all route navigations without prop drilling.
-- **Why not Redux/Zustand?**: The state complexity doesn't justify a full state management library. Context API keeps the bundle smaller and the code simpler for this scope.
+The Cart page (`src/app/page.tsx`) is an **async Server Component** — it calls `getCartData()` on the server before sending any HTML to the browser. The data module (`src/lib/cart-data.ts`) is imported directly rather than self-fetched via `fetch('/api/cart')`, because self-fetching in Server Components is unreliable on edge runtimes like Vercel (the server URL is not available at render time). The `/api/cart` Route Handler still exists as an external-facing endpoint.
 
-### Why Tailwind CSS v4?
-- **Rapid development**: Utility-first CSS enables fast iteration without context-switching to separate stylesheets.
-- **Custom theme**: Extended with Ecoyaan's brand colors (earthy greens, teals) using CSS custom properties in `globals.css` via Tailwind's `@theme inline` directive.
-- **Responsive design**: Tailwind's breakpoint utilities (`sm:`, `lg:`) make mobile-first responsive layouts straightforward.
+This pattern ensures the cart HTML is **fully server-rendered** before reaching the client, satisfying the SSR requirement while remaining Vercel-compatible.
 
-### Form Validation Strategy
-- **Real-time inline validation** with a **touched-field** tracking pattern — errors only show after a user has interacted with a field, avoiding an aggressive initial error state.
-- **Indian-specific rules**: 10-digit mobile phone starting with 6-9 (`/^[6-9]\d{9}$/`), 6-digit PIN code, and all 28 states + 8 UTs in the dropdown.
-- **No external library**: Validation logic is hand-written to keep the bundle lean and demonstrate understanding of form state management patterns.
+### React Context API for State Management
 
-### Component Architecture
-- **Server/Client separation**: `page.tsx` (Server Component) handles data fetching → passes props to `CartPage.tsx` (Client Component) for interactivity. This is the recommended Next.js pattern for combining SSR with client-side state.
-- **Reusable components**: `StepIndicator`, `OrderSummaryCard`, `ProductImage`, and `Header` are reusable across multiple pages.
-- **Progressive enhancement**: `ProductImage` component includes a graceful SVG fallback when external images fail to load.
+`CheckoutProvider` (in `layout.tsx`) wraps the entire app, so cart data, the selected shipping address, saved addresses, and order state all persist across route navigations without prop drilling. Computed values (`subtotal`, `grandTotal`) live in the context so no page needs to recalculate them.
+
+Redux/Zustand were not used — the state complexity for a 3-step checkout flow does not justify the overhead.
+
+### localStorage Persistence
+
+The context persists three pieces of state to `localStorage`:
+
+| Key | What it stores |
+|---|---|
+| `ecoyaan_saved_addresses` | All addresses the user has ever entered |
+| `ecoyaan_shipping_address` | The address selected for the current order |
+| `ecoyaan_order_state` | Order ID + placed flag (so the success page survives a reload) |
+
+Cart items are intentionally excluded — they are always re-fetched fresh from the Server Component on the Cart page.
+
+A `isHydrated` flag prevents UI flash: pages that depend on `savedAddresses` render a skeleton until the context has finished reading from `localStorage`.
+
+### Multiple Saved Addresses
+
+Users can save multiple delivery addresses. On the Shipping page:
+- Saved addresses render as selectable radio-button cards.
+- Any card can be removed with the trash icon (revealed on hover).
+- "Add New Address" opens a form below the cards; on submit the address is saved and automatically selected.
+- The previously used address is pre-selected on return visits.
+
+### Sticky Bottom Action Bar
+
+All checkout pages (Cart, Shipping, Payment) use a `StickyActionBar` component fixed to the bottom of the viewport. On Shipping and Payment pages it shows **Back** and **Next/Pay** together in one bar, so both actions are always reachable without scrolling. On mobile the Back button collapses to an arrow-only icon to save space.
+
+### Form Validation
+
+Real-time validation with a **touched-field** pattern — errors only appear after a field has been interacted with, avoiding an aggressive initial error state. Validation rules are Indian-specific:
+
+- Phone: 10 digits starting with 6–9 (`/^[6-9]\d{9}$/`)
+- PIN Code: exactly 6 digits (`/^\d{6}$/`)
+- State: dropdown of all 28 states + 8 Union Territories
+
+No external validation library (yup/zod/react-hook-form) is used.
+
+### Responsive Design
+
+All pages use a **1-column (mobile) → 3-column (desktop)** Tailwind CSS grid. The Order Summary card sits in the right sidebar on desktop and stacks below the main content on mobile. The sticky bottom bar adapts its label visibility at the `sm` breakpoint.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/cart/route.ts       # Mock API endpoint (Route Handler)
-│   ├── page.tsx                # Cart page (Server Component → SSR)
-│   ├── shipping/page.tsx       # Shipping address form (Client Component)
-│   ├── payment/page.tsx        # Payment review & confirmation
-│   ├── success/page.tsx        # Order success page
-│   ├── layout.tsx              # Root layout with CheckoutProvider
-│   └── globals.css             # Tailwind theme + custom animations
+│   ├── api/cart/route.ts         # Mock API endpoint (Route Handler)
+│   ├── page.tsx                  # Cart page — async Server Component (SSR)
+│   ├── shipping/page.tsx         # Shipping address screen (Client Component)
+│   ├── payment/page.tsx          # Payment review & confirmation
+│   ├── success/page.tsx          # Order success page
+│   ├── layout.tsx                # Root layout with CheckoutProvider
+│   └── globals.css               # Tailwind theme + custom animations
 ├── components/
-│   ├── CartPage.tsx            # Cart client component
-│   ├── Header.tsx              # Ecoyaan-branded header
-│   ├── OrderSummaryCard.tsx    # Reusable price breakdown card
-│   ├── ProductImage.tsx        # Image with fallback placeholder
-│   └── StepIndicator.tsx       # Visual step progress indicator
+│   ├── CartPage.tsx              # Cart client component
+│   ├── Header.tsx                # Ecoyaan-branded sticky header
+│   ├── OrderSummaryCard.tsx      # Reusable price breakdown card
+│   ├── ProductImage.tsx          # Image with SVG fallback placeholder
+│   ├── StickyActionBar.tsx       # Fixed-bottom Back/Next action bar
+│   └── StepIndicator.tsx         # Visual step progress (Cart → Shipping → Payment)
 ├── context/
-│   └── CheckoutContext.tsx     # React Context for checkout state
+│   └── CheckoutContext.tsx       # React Context: cart, addresses, order + localStorage sync
+├── lib/
+│   └── cart-data.ts              # Mock data source (shared by Server Component + API route)
 └── types/
-    └── index.ts                # TypeScript interfaces
+    └── index.ts                  # TypeScript interfaces (CartItem, ShippingAddress, etc.)
 ```
 
 ---
 
-## 🛠️ How to Run Locally
+## How to Run Locally
 
 ### Prerequisites
-- **Node.js** ≥ 18
-- **npm** ≥ 9
-
-### Step-by-Step
+- **Node.js** >= 18
+- **npm** >= 9
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/amansingh107/Ecoyaan_Assignment.git
 
-# 2. Navigate to the project directory
+# 2. Navigate into the project
 cd Ecoyaan_Assignment
 
 # 3. Install dependencies
@@ -99,20 +127,18 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Build for Production
+### Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
-The production build optimizes the app and starts a Node.js server on port 3000.
-
 ---
 
-## 🧪 Mock Data
+## Mock Data
 
-The API route `/api/cart` serves the following data (fetched server-side on the Cart page):
+The API route `/api/cart` (and the SSR Server Component) serve:
 
 ```json
 {
@@ -139,14 +165,17 @@ The API route `/api/cart` serves the following data (fetched server-side on the 
 
 ---
 
-## 📋 Key Features Summary
+## Key Features
 
-| Feature | Implementation | Why |
-|---|---|---|
-| SSR Data Fetching | Server Component + API Route | Demonstrates Next.js best practices |
-| State Management | React Context API | Right-sized for checkout flow complexity |
-| Form Validation | Real-time regex + touched tracking | UX-friendly, no extra dependencies |
-| Responsive Design | Tailwind CSS breakpoints | Mobile-first, consistent layout |
-| Animations | CSS keyframes + transitions | Polished UX without JS libraries |
-| Type Safety | Full TypeScript | Catches errors at compile time |
-| Error Handling | ProductImage fallback | Graceful degradation |
+| Feature | Implementation |
+|---|---|
+| Server-Side Rendering | Async Server Component fetches data before HTML is sent to client |
+| State Management | React Context API — cart, addresses, order state across all routes |
+| localStorage Persistence | Addresses + order state survive page reloads; cart re-fetched from SSR |
+| Multiple Saved Addresses | Add, select, and remove delivery addresses; persisted across sessions |
+| Sticky Action Bar | Fixed bottom bar with Back + Next together on all checkout pages |
+| Form Validation | Real-time regex + touched-field tracking, no external library |
+| Responsive Design | Mobile-first Tailwind grid, sticky sidebar on desktop |
+| Animations | Pure CSS keyframes (fade-in, scale-in, SVG checkmark draw) |
+| Type Safety | Full TypeScript with strict mode |
+| Error Handling | ProductImage SVG fallback; route guards redirect to Cart if state is missing |
